@@ -6,7 +6,6 @@
 <title>Bonnie's — POS System</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ── Reset & Variables ─────────────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -25,9 +24,8 @@
     --red-light:  #ffebee;
     --blue:       #1565c0;
     --blue-light: #e3f2fd;
-    --gold:       #f59e0b;
-    --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md:  0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md:  0 4px 12px rgba(0,0,0,0.10);
     --shadow-lg:  0 12px 32px rgba(0,0,0,0.14);
     --radius:     12px;
     --radius-sm:  8px;
@@ -37,25 +35,19 @@
     --font-mono:    'DM Mono', monospace;
   }
 
-  html, body {
-    height: 100%;
-    font-family: var(--font-body);
-    background: var(--paper);
-    color: var(--ink);
-    font-size: 15px;
-    -webkit-font-smoothing: antialiased;
-  }
+  html, body { height: 100%; font-family: var(--font-body); background: var(--paper); color: var(--ink); font-size: 15px; -webkit-font-smoothing: antialiased; }
 
-  /* ── Layout ──────────────────────────────────────────────────────── */
+  /* ── App shell: full viewport, no overflow ── */
   #app {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    grid-template-columns: 1fr;
-    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
   }
 
-  /* ── Header ──────────────────────────────────────────────────────── */
+  /* ── Header ── */
   header {
+    flex-shrink: 0;
     background: var(--ink);
     color: var(--white);
     padding: 0 24px;
@@ -63,440 +55,72 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
     border-bottom: 2px solid var(--teal);
+    z-index: 100;
   }
 
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .header-brand .logo {
-    width: 36px; height: 36px;
-    background: var(--teal);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-
-  .header-brand h1 {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.3px;
-  }
-
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-brand .logo { width: 36px; height: 36px; background: var(--teal); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .header-brand h1 { font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
   .header-brand h1 span { color: var(--teal); }
+  #clock { font-family: var(--font-mono); font-size: 13px; color: #94a3b8; letter-spacing: 0.5px; }
 
-  #clock {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-  }
-
-  /* ── Main grid ───────────────────────────────────────────────────── */
+  /* ── Main: fills all remaining height ── */
   main {
+    flex: 1;
+    min-height: 0;
     display: grid;
     grid-template-columns: 1fr 420px;
-    gap: 0;
     overflow: hidden;
-    height: calc(100vh - 62px - 38px);
   }
 
-  /* ── Panel base ──────────────────────────────────────────────────── */
-  .panel {
+  /* ── Left panel: scrollable product list ── */
+  .panel-left {
     overflow-y: auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    background: var(--paper);
+    border-right: 1px solid var(--paper-dark);
   }
 
-  .panel-left  { background: var(--paper); border-right: 1px solid var(--paper-dark); }
-  .panel-right { background: var(--white); }
-
-  /* ── Section headings ────────────────────────────────────────────── */
-  .section-title {
-    font-family: var(--font-display);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--ink-muted);
-    margin-bottom: 10px;
-  }
-
-  /* ── Search & filter bar ─────────────────────────────────────────── */
-  .search-bar {
+  /* ── Right panel: fixed flex column, NO overflow on the panel itself ── */
+  .panel-right {
     display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .search-wrap {
-    flex: 1;
-    position: relative;
-  }
-
-  .search-wrap svg {
-    position: absolute; left: 12px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--ink-muted);
-    pointer-events: none;
-  }
-
-  input[type="text"], input[type="number"], select {
-    width: 100%;
-    padding: 10px 12px 10px 38px;
-    border: 1.5px solid var(--paper-dark);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-body);
-    font-size: 14px;
-    background: var(--white);
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-
-  input[type="text"]:focus, input[type="number"]:focus, select:focus {
-    border-color: var(--teal);
-    box-shadow: 0 0 0 3px rgba(0,137,123,0.12);
-  }
-
-  select { padding-left: 12px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
-
-  /* ── Category chips ──────────────────────────────────────────────── */
-  .cat-chips {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .chip {
-    padding: 5px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1.5px solid var(--paper-dark);
-    background: var(--white);
-    color: var(--ink-soft);
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-
-  .chip:hover { border-color: var(--teal); color: var(--teal); }
-  .chip.active { background: var(--teal); border-color: var(--teal); color: var(--white); }
-
-  /* ── Product grid ────────────────────────────────────────────────── */
-  #product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 10px;
-  }
-
-  .product-card {
-    background: var(--white);
-    border: 1.5px solid var(--paper-dark);
-    border-radius: var(--radius);
-    padding: 14px;
-    cursor: pointer;
-    transition: all 0.18s;
-    position: relative;
+    flex-direction: column;
     overflow: hidden;
+    padding: 16px 20px;
+    gap: 8px;
+    background: var(--white);
   }
 
-  .product-card:hover {
-    border-color: var(--teal);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-  }
+  /* Cart title row — never shrinks */
+  .cart-title { flex-shrink: 0; }
 
-  .product-card:active { transform: scale(0.98); }
-
-  .product-card.out-of-stock {
-    opacity: 0.45;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  .product-card .cat-badge {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--ink-muted);
-    margin-bottom: 6px;
-  }
-
-  .product-card .p-name {
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1.3;
-    margin-bottom: 8px;
-    color: var(--ink);
-  }
-
-  .product-card .p-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-
-  .product-card .p-price {
-    font-family: var(--font-mono);
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--teal-dark);
-  }
-
-  .product-card .p-stock {
-    font-size: 11px;
-    color: var(--ink-muted);
-  }
-
-  .product-card .p-stock.low { color: var(--amber); font-weight: 600; }
-
-  .product-card .tax-tag {
-    position: absolute;
-    top: 8px; right: 8px;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--blue-light);
-    color: var(--blue);
-  }
-
-  .add-ripple {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,137,123,0.12);
-    border-radius: var(--radius);
-    animation: rippleFade 0.35s ease-out forwards;
-    pointer-events: none;
-  }
-
-  @keyframes rippleFade {
-    from { opacity: 1; }
-    to   { opacity: 0; }
-  }
-
-  /* ── Cart panel ──────────────────────────────────────────────────── */
+  /* Cart items — grows to fill available space, scrolls internally */
   #cart-items {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-height: 120px;
   }
 
-  .cart-empty {
-    flex: 1;
+  /* Checkout section — fixed height at bottom, never overlaps cart */
+  .checkout-section {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--ink-muted);
-    gap: 10px;
-    padding: 40px 0;
-  }
-
-  .cart-empty svg { opacity: 0.25; }
-  .cart-empty p { font-size: 14px; }
-
-  .cart-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: var(--paper);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--paper-dark);
-    animation: slideIn 0.18s ease-out;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  .cart-row .cr-name {
-    flex: 1;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.3;
-  }
-
-  .cart-row .cr-id {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--ink-muted);
-  }
-
-  .qty-controls {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .qty-btn {
-    width: 26px; height: 26px;
-    border-radius: 6px;
-    border: 1.5px solid var(--paper-dark);
-    background: var(--white);
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.12s;
-    color: var(--ink-soft);
-  }
-
-  .qty-btn:hover { border-color: var(--teal); color: var(--teal); }
-  .qty-btn.remove:hover { border-color: var(--red); color: var(--red); }
-
-  .qty-num {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    min-width: 24px;
-    text-align: center;
-    font-weight: 500;
-  }
-
-  .cr-total {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ink);
-    min-width: 60px;
-    text-align: right;
-  }
-
-  /* ── Divider ─────────────────────────────────────────────────────── */
-  .divider { height: 1px; background: var(--paper-dark); margin: 4px 0; }
-
-  /* ── Totals ──────────────────────────────────────────────────────── */
-  .totals-grid {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 6px 12px;
-    padding: 14px;
-    background: var(--paper);
-    border-radius: var(--radius);
-    border: 1px solid var(--paper-dark);
-  }
-
-  .totals-grid .t-label {
-    font-size: 13px;
-    color: var(--ink-soft);
-  }
-
-  .totals-grid .t-value {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    text-align: right;
-    color: var(--ink);
-  }
-
-  .totals-grid .t-label.grand { font-weight: 700; font-size: 15px; color: var(--ink); }
-  .totals-grid .t-value.grand {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--teal-dark);
-  }
-
-  .totals-grid .t-label.discount { color: var(--amber); }
-  .totals-grid .t-value.discount { color: var(--amber); }
-
-  /* ── Discount & payment controls ─────────────────────────────────── */
-  .control-row {
-    display: flex;
     gap: 8px;
-    align-items: center;
+    border-top: 1px solid var(--paper-dark);
+    padding-top: 10px;
   }
 
-  .control-row label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--ink-muted);
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    min-width: 90px;
-  }
-
-  .control-row input, .control-row select {
-    padding: 9px 12px;
-  }
-
-  .control-row input { padding-left: 12px; }
-
-  /* ── Buttons ─────────────────────────────────────────────────────── */
-  .btn {
-    padding: 10px 18px;
-    border-radius: var(--radius-sm);
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.15s;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .btn:active { transform: scale(0.97); }
-
-  .btn-primary {
-    background: var(--teal);
-    color: var(--white);
-    box-shadow: 0 2px 8px rgba(0,137,123,0.30);
-  }
-  .btn-primary:hover { background: var(--teal-dark); }
-
-  .btn-danger  { background: var(--red);   color: var(--white); }
-  .btn-danger:hover  { background: #b71c1c; }
-
-  .btn-amber   { background: var(--amber); color: var(--white); }
-  .btn-amber:hover   { background: #bf360c; }
-
-  .btn-ghost {
-    background: transparent;
-    color: var(--red);
-    border: 1.5px solid var(--red);
-  }
-  .btn-ghost:hover { background: var(--red-light); }
-
-  .btn-checkout {
-    width: 100%;
-    padding: 16px;
-    font-size: 16px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    background: var(--ink);
-    color: var(--white);
-    border-radius: var(--radius);
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s;
-    box-shadow: var(--shadow-md);
-  }
-  .btn-checkout:hover { background: #1e293b; box-shadow: var(--shadow-lg); }
-  .btn-checkout:active { transform: scale(0.99); }
-  .btn-checkout:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-  /* ── Status bar ──────────────────────────────────────────────────── */
+  /* ── Status bar ── */
   #status-bar {
+    flex-shrink: 0;
     background: var(--ink);
     color: #64748b;
     font-size: 13px;
@@ -510,143 +134,152 @@
   }
 
   #status-msg { transition: color 0.2s; }
-  #status-msg.ok     { color: #34d399; }
-  #status-msg.warn   { color: #fbbf24; }
-  #status-msg.err    { color: #f87171; }
+  #status-msg.ok   { color: #34d399; }
+  #status-msg.warn { color: #fbbf24; }
+  #status-msg.err  { color: #f87171; }
 
-  /* ── Modal overlay ───────────────────────────────────────────────── */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(13,17,23,0.7);
-    backdrop-filter: blur(4px);
-    z-index: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    animation: fadeIn 0.2s ease;
+  /* ── Section title ── */
+  .section-title { font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-muted); margin-bottom: 6px; }
+
+  /* ── Search ── */
+  .search-bar { display: flex; gap: 8px; align-items: center; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-muted); pointer-events: none; }
+
+  input[type="text"], input[type="number"], select {
+    width: 100%; padding: 10px 12px 10px 38px;
+    border: 1.5px solid var(--paper-dark); border-radius: var(--radius-sm);
+    font-family: var(--font-body); font-size: 14px;
+    background: var(--white); color: var(--ink);
+    outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,137,123,0.12); }
+  select { padding-left: 12px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
 
+  /* ── Category chips ── */
+  .cat-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--paper-dark); background: var(--white); color: var(--ink-soft); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .chip:hover { border-color: var(--teal); color: var(--teal); }
+  .chip.active { background: var(--teal); border-color: var(--teal); color: var(--white); }
+
+  /* ── Product grid ── */
+  #product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+
+  .product-card { background: var(--white); border: 1.5px solid var(--paper-dark); border-radius: var(--radius); padding: 14px; cursor: pointer; transition: all 0.18s; position: relative; overflow: hidden; }
+  .product-card:hover { border-color: var(--teal); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .product-card:active { transform: scale(0.98); }
+  .product-card.out-of-stock { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .product-card .cat-badge { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink-muted); margin-bottom: 6px; }
+  .product-card .p-name { font-weight: 600; font-size: 14px; line-height: 1.3; margin-bottom: 8px; color: var(--ink); }
+  .product-card .p-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .product-card .p-price { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--teal-dark); }
+  .product-card .p-stock { font-size: 11px; color: var(--ink-muted); }
+  .product-card .p-stock.low { color: var(--amber); font-weight: 600; }
+  .product-card .tax-tag { position: absolute; top: 8px; right: 8px; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: var(--blue-light); color: var(--blue); }
+
+  .add-ripple { position: absolute; inset: 0; background: rgba(0,137,123,0.12); border-radius: var(--radius); animation: rippleFade 0.35s ease-out forwards; pointer-events: none; }
+  @keyframes rippleFade { from { opacity: 1; } to { opacity: 0; } }
+
+  /* ── Cart ── */
+  .cart-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-muted); gap: 10px; padding: 30px 0; }
+  .cart-empty svg { opacity: 0.25; }
+  .cart-empty p { font-size: 14px; }
+
+  .cart-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--paper); border-radius: var(--radius-sm); border: 1px solid var(--paper-dark); animation: slideIn 0.18s ease-out; flex-shrink: 0; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+  .cart-row .cr-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 500; line-height: 1.3; }
+  .cart-row .cr-id { font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted); }
+
+  .qty-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .qty-btn { width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--paper-dark); background: var(--white); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; color: var(--ink-soft); }
+  .qty-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .qty-btn.remove:hover { border-color: var(--red); color: var(--red); }
+  .qty-num { font-family: var(--font-mono); font-size: 14px; min-width: 24px; text-align: center; font-weight: 500; }
+  .cr-total { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--ink); min-width: 70px; text-align: right; flex-shrink: 0; }
+
+  /* ── Totals grid ── */
+  .totals-grid { display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; padding: 10px 14px; background: var(--paper); border-radius: var(--radius); border: 1px solid var(--paper-dark); }
+  .totals-grid .t-label { font-size: 13px; color: var(--ink-soft); }
+  .totals-grid .t-value { font-family: var(--font-mono); font-size: 13px; text-align: right; color: var(--ink); }
+  .totals-grid .t-label.grand { font-weight: 700; font-size: 14px; color: var(--ink); }
+  .totals-grid .t-value.grand { font-size: 16px; font-weight: 500; color: var(--teal-dark); }
+  .totals-grid .t-label.discount { color: var(--amber); }
+  .totals-grid .t-value.discount { color: var(--amber); }
+
+  /* ── Control rows ── */
+  .control-row { display: flex; gap: 8px; align-items: center; }
+  .control-row label { font-size: 12px; font-weight: 600; color: var(--ink-muted); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.8px; min-width: 80px; }
+  .control-row input, .control-row select { padding: 8px 12px; }
+  .control-row input { padding-left: 12px; }
+
+  /* ── Buttons ── */
+  .btn { padding: 9px 16px; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--teal); color: var(--white); box-shadow: 0 2px 8px rgba(0,137,123,0.30); }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-amber { background: var(--amber); color: var(--white); }
+  .btn-amber:hover { background: #bf360c; }
+  .btn-ghost { background: transparent; color: var(--red); border: 1.5px solid var(--red); }
+  .btn-ghost:hover { background: var(--red-light); }
+
+  .btn-checkout { width: 100%; padding: 13px; font-size: 16px; font-family: var(--font-display); font-weight: 700; letter-spacing: 0.5px; background: var(--ink); color: var(--white); border-radius: var(--radius); border: none; cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow-md); }
+  .btn-checkout:hover { background: #1e293b; }
+  .btn-checkout:active { transform: scale(0.99); }
+  .btn-checkout:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── Change due ── */
+  #change-due { display: none; font-family: var(--font-mono); font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); }
+
+  /* ── Cart badge ── */
+  #cart-badge { background: var(--teal); color: var(--white); font-size: 11px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-left: 6px; }
+
+  /* ── Modal ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(13,17,23,0.7); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal { background: var(--white); border-radius: var(--radius-lg); padding: 28px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 0.22s ease; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal h2 { font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 18px; color: var(--ink); }
+  .receipt-body { font-family: var(--font-mono); font-size: 13px; white-space: pre; background: var(--paper); border-radius: var(--radius-sm); padding: 16px; overflow-x: auto; line-height: 1.7; border: 1px solid var(--paper-dark); }
+  .modal-actions { margin-top: 18px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 
-  .modal {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    max-width: 480px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-    animation: slideUp 0.22s ease;
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-
-  .modal h2 {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 18px;
-    color: var(--ink);
-  }
-
-  .receipt-body {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    white-space: pre;
-    background: var(--paper);
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    overflow-x: auto;
-    line-height: 1.7;
-    border: 1px solid var(--paper-dark);
-  }
-
-  .modal-actions {
-    margin-top: 18px;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-  }
-
-  /* ── Toast notification ──────────────────────────────────────────── */
-  #toast {
-    position: fixed;
-    bottom: 60px;
-    right: 20px;
-    background: var(--ink);
-    color: var(--white);
-    padding: 12px 18px;
-    border-radius: var(--radius);
-    font-size: 14px;
-    z-index: 600;
-    box-shadow: var(--shadow-lg);
-    transition: all 0.25s;
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    max-width: 320px;
-    border-left: 4px solid var(--teal);
-  }
-
+  /* ── Toast ── */
+  #toast { position: fixed; bottom: 60px; right: 20px; background: var(--ink); color: var(--white); padding: 12px 18px; border-radius: var(--radius); font-size: 14px; z-index: 600; box-shadow: var(--shadow-lg); transition: all 0.25s; opacity: 0; transform: translateY(10px); pointer-events: none; max-width: 320px; border-left: 4px solid var(--teal); }
   #toast.show { opacity: 1; transform: translateY(0); }
   #toast.error { border-left-color: var(--red); }
 
-  /* ── Cart item count badge ───────────────────────────────────────── */
-  #cart-badge {
-    background: var(--teal);
-    color: var(--white);
-    font-size: 11px;
-    font-weight: 700;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 6px;
-  }
-
-  /* ── Responsive: tablet layout ───────────────────────────────────── */
-  @media (max-width: 900px) {
-    main {
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr auto;
-      height: auto;
-      overflow: visible;
-    }
-
-    .panel-left  { min-height: 50vh; }
-    .panel-right { border-top: 2px solid var(--paper-dark); }
-
-    #product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-
-    #app { grid-template-rows: auto auto auto; }
-  }
-
-  @media (max-width: 480px) {
-    header { padding: 0 14px; }
-    .panel { padding: 14px; }
-    #clock { display: none; }
-    #product-grid { grid-template-columns: repeat(2, 1fr); }
-    .control-row { flex-wrap: wrap; }
-    .control-row label { min-width: 100%; }
-  }
-
-  /* ── Scrollbar styling ───────────────────────────────────────────── */
+  /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  /* ── Tablet (stacked) ── */
+  @media (max-width: 900px) {
+    #app { height: auto; overflow: visible; }
+    main { grid-template-columns: 1fr; grid-template-rows: auto auto; overflow: visible; height: auto; }
+    .panel-left { overflow-y: visible; min-height: 50vh; }
+    .panel-right { overflow: visible; height: auto; border-top: 2px solid var(--paper-dark); }
+    #cart-items { max-height: 260px; overflow-y: auto; flex: none; }
+    #product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  }
+
+  /* ── Phone ── */
+  @media (max-width: 480px) {
+    header { padding: 0 14px; }
+    .panel-left, .panel-right { padding: 14px; }
+    #clock { display: none; }
+    #product-grid { grid-template-columns: repeat(2, 1fr); }
+    .control-row { flex-wrap: wrap; gap: 6px; }
+    .control-row label { min-width: 100%; }
+    #cart-items { max-height: 200px; }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+  }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ── Header ──────────────────────────────────────────────────── -->
   <header>
     <div class="header-brand">
       <div class="logo">☕</div>
@@ -655,12 +288,10 @@
     <div id="clock"></div>
   </header>
 
-  <!-- ── Main ────────────────────────────────────────────────────── -->
   <main>
 
-    <!-- LEFT: Product catalog -->
-    <div class="panel panel-left">
-
+    <!-- LEFT: Product catalog (scrollable) -->
+    <div class="panel-left">
       <div>
         <div class="section-title">Product Catalog</div>
         <div class="search-bar">
@@ -670,22 +301,21 @@
           </div>
         </div>
       </div>
-
       <div class="cat-chips" id="cat-chips"></div>
-
       <div id="product-grid"></div>
     </div>
 
-    <!-- RIGHT: Cart + checkout -->
-    <div class="panel panel-right">
+    <!-- RIGHT: Cart + checkout (fixed layout, no overflow) -->
+    <div class="panel-right">
 
-      <div>
+      <!-- 1. Title — fixed -->
+      <div class="cart-title">
         <div class="section-title">
-          Shopping Cart
-          <span id="cart-badge">0</span>
+          Shopping Cart <span id="cart-badge">0</span>
         </div>
       </div>
 
+      <!-- 2. Cart items — scrollable, takes remaining space -->
       <div id="cart-items">
         <div class="cart-empty" id="cart-empty">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -693,52 +323,48 @@
         </div>
       </div>
 
-      <div class="divider"></div>
+      <!-- 3. Checkout section — always anchored at bottom -->
+      <div class="checkout-section">
 
-      <!-- Discount -->
-      <div class="control-row">
-        <label>Discount %</label>
-        <input type="number" id="discount-input" value="0" min="0" max="100" step="0.5" style="width:90px; padding-left:12px;">
-        <button class="btn btn-amber" onclick="applyDiscount()">Apply</button>
+        <div class="control-row">
+          <label>Discount %</label>
+          <input type="number" id="discount-input" value="0" min="0" max="100" step="0.5" style="width:90px; padding-left:12px;">
+          <button class="btn btn-amber" onclick="applyDiscount()">Apply</button>
+        </div>
+
+        <div class="totals-grid">
+          <span class="t-label">Subtotal</span>           <span class="t-value" id="t-subtotal">₱0.00</span>
+          <span class="t-label discount">Discount</span>  <span class="t-value discount" id="t-discount">-₱0.00</span>
+          <span class="t-label">Tax (3.5%)</span>         <span class="t-value" id="t-tax">₱0.00</span>
+          <span class="t-label grand">Grand Total</span>  <span class="t-value grand" id="t-total">₱0.00</span>
+        </div>
+
+        <div class="control-row">
+          <label>Tendered ₱</label>
+          <input type="number" id="tendered-input" value="0.00" min="0" step="0.01" style="padding-left:12px;">
+        </div>
+
+        <div class="control-row">
+          <label>Payment</label>
+          <select id="payment-method">
+            <option>Cash</option>
+            <option>Credit Card</option>
+            <option>Debit Card</option>
+            <option>Mobile Pay</option>
+          </select>
+        </div>
+
+        <div id="change-due"></div>
+
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" onclick="clearCart()" style="flex-shrink:0;">🗑 Clear</button>
+          <button class="btn-checkout" id="checkout-btn" onclick="checkout()" disabled>💳 &nbsp;Checkout</button>
+        </div>
+
       </div>
-
-      <!-- Totals -->
-      <div class="totals-grid" id="totals-grid">
-        <span class="t-label">Subtotal</span>       <span class="t-value" id="t-subtotal">₱0.00</span>
-        <span class="t-label discount">Discount</span>     <span class="t-value discount" id="t-discount">-₱0.00</span>
-        <span class="t-label">Tax (3.5%)</span>     <span class="t-value" id="t-tax">₱0.00</span>
-        <span class="t-label grand">Grand Total</span><span class="t-value grand" id="t-total">₱0.00</span>
-      </div>
-
-      <!-- Payment -->
-      <div class="control-row">
-        <label>Tendered ₱</label>
-        <input type="number" id="tendered-input" value="0.00" min="0" step="0.01" style="padding-left:12px;">
-      </div>
-
-      <div class="control-row">
-        <label>Payment</label>
-        <select id="payment-method">
-          <option>Cash</option>
-          <option>Credit Card</option>
-          <option>Debit Card</option>
-          <option>Mobile Pay</option>
-        </select>
-      </div>
-
-      <div id="change-due" style="display:none; font-family:var(--font-mono); font-size:13px; color:var(--teal-dark); padding: 8px 14px; background:var(--teal-light); border-radius:var(--radius-sm);"></div>
-
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-ghost" onclick="clearCart()" style="flex:0 0 auto;">🗑 Clear</button>
-        <button class="btn-checkout" id="checkout-btn" onclick="checkout()" disabled>
-          💳 &nbsp;Checkout
-        </button>
-      </div>
-
     </div>
   </main>
 
-  <!-- ── Status bar ───────────────────────────────────────────────── -->
   <div id="status-bar">
     <span id="status-msg">Ready — tap any product to add it to the cart.</span>
     <span style="color:#334155; font-size:11px;">Bonnie's POS v1.0</span>
@@ -746,21 +372,15 @@
 
 </div>
 
-<!-- ── Toast ─────────────────────────────────────────────────────── -->
 <div id="toast"></div>
 
-<!-- ── Receipt Modal ─────────────────────────────────────────────── -->
 <div id="receipt-modal" class="modal-overlay" style="display:none;">
   <div class="modal">
     <h2>🧾 Transaction Complete</h2>
     <div class="receipt-body" id="receipt-body"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="connectThermalPrinter()" id="btn-connect-printer" title="Connect thermal printer via USB/Serial">
-        🔌 Connect Printer
-      </button>
-      <button class="btn btn-amber" onclick="printReceiptSerial()" id="btn-print-receipt" disabled title="Print receipt to thermal printer">
-        🖨 Print Receipt
-      </button>
+      <button class="btn btn-ghost" onclick="connectThermalPrinter()" id="btn-connect-printer">🔌 Connect Printer</button>
+      <button class="btn btn-amber" onclick="printReceiptSerial()" id="btn-print-receipt" disabled>🖨 Print Receipt</button>
       <button class="btn btn-primary" onclick="closeReceipt()">✓ Done</button>
     </div>
     <div id="printer-status" style="margin-top:10px; font-size:12px; font-family:var(--font-mono); color:var(--ink-muted); text-align:center;"></div>
@@ -768,582 +388,321 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════
-//  DATA — Inventory
-// ═══════════════════════════════════════════════════════════════════
 const INVENTORY = [
-  // Beverages
-  { id:"BEV001", name:"Coca-Cola 12oz",     cat:"Beverages",   price:55.00, stock:50, tax:true  },
-  { id:"BEV002", name:"Wilkins Distilled 16oz", cat:"Beverages",   price:25.00, stock:75, tax:true  },
-  { id:"BEV003", name:"Royal 32oz",  cat:"Beverages",   price:95.00, stock:30, tax:true  },
-  { id:"BEV004", name:"Gatorade 12oz",   cat:"Beverages",   price:75.00, stock:40, tax:true  },
-  // Snacks
-  { id:"SNK001", name:"Potato Fries",       cat:"Snacks",      price:40.00, stock:60, tax:true  },
-  { id:"SNK002", name:"KitKat",      cat:"Snacks",      price:35.00, stock:80, tax:true  },
-  { id:"SNK003", name:"Kettle Corn",    cat:"Snacks",      price:85.00, stock:25, tax:true  },
-  { id:"SNK004", name:"Cheezy Corn Crunch",        cat:"Snacks",      price:25.00, stock:45, tax:true  },
-  // Produce (tax-exempt)
-  { id:"PRD001", name:"Apple (per kg)",     cat:"Produce",     price:120.00, stock:100,tax:false },
-  { id:"PRD002", name:"Banana (per kg)",    cat:"Produce",     price:60.00, stock:90, tax:false },
-  { id:"PRD003", name:"Potato (per kg)",    cat:"Produce",     price:80.00, stock:35, tax:false },
-  { id:"PRD004", name:"Carrots (per kg)",   cat:"Produce",     price:75.00, stock:50, tax:false },
-  // Dairy
-  { id:"DAI001", name:"Fresh Milk 1L",   cat:"Dairy",       price:110.00, stock:20, tax:false },
-  { id:"DAI002", name:"Cheddar Cheese 8oz", cat:"Dairy",       price:195.00, stock:30, tax:true  },
-  { id:"DAI003", name:"Pascual Yogurt 125g",   cat:"Dairy",       price:55.00, stock:40, tax:false },
-  { id:"DAI004", name:"Butter 225g",         cat:"Dairy",       price:145.00, stock:15, tax:false },
-  // Electronics
-  { id:"ELC001", name:"USB Cable 3m",      cat:"Electronics", price:249.00, stock:20, tax:true  },
-  { id:"ELC002", name:"AA Batteries 4pk",   cat:"Electronics", price:175.00, stock:35, tax:true  },
-  { id:"ELC003", name:"Screen Wipes 20pk",  cat:"Electronics", price:159.00, stock:18, tax:true  },
+  { id:"BEV001", name:"Coca-Cola 12oz",         cat:"Beverages",   price:55.00,  stock:50,  tax:true  },
+  { id:"BEV002", name:"Wilkins Distilled 16oz", cat:"Beverages",   price:25.00,  stock:75,  tax:true  },
+  { id:"BEV003", name:"Royal 32oz",             cat:"Beverages",   price:95.00,  stock:30,  tax:true  },
+  { id:"BEV004", name:"Gatorade 12oz",          cat:"Beverages",   price:75.00,  stock:40,  tax:true  },
+  { id:"SNK001", name:"Potato Fries",           cat:"Snacks",      price:40.00,  stock:60,  tax:true  },
+  { id:"SNK002", name:"KitKat",                 cat:"Snacks",      price:35.00,  stock:80,  tax:true  },
+  { id:"SNK003", name:"Kettle Corn",            cat:"Snacks",      price:85.00,  stock:25,  tax:true  },
+  { id:"SNK004", name:"Cheezy Corn Crunch",     cat:"Snacks",      price:25.00,  stock:45,  tax:true  },
+  { id:"PRD001", name:"Apple (per kg)",         cat:"Produce",     price:120.00, stock:100, tax:false },
+  { id:"PRD002", name:"Banana (per kg)",        cat:"Produce",     price:60.00,  stock:90,  tax:false },
+  { id:"PRD003", name:"Potato (per kg)",        cat:"Produce",     price:80.00,  stock:35,  tax:false },
+  { id:"PRD004", name:"Carrots (per kg)",       cat:"Produce",     price:75.00,  stock:50,  tax:false },
+  { id:"DAI001", name:"Fresh Milk 1L",          cat:"Dairy",       price:110.00, stock:20,  tax:false },
+  { id:"DAI002", name:"Cheddar Cheese 8oz",     cat:"Dairy",       price:195.00, stock:30,  tax:true  },
+  { id:"DAI003", name:"Pascual Yogurt 125g",    cat:"Dairy",       price:55.00,  stock:40,  tax:false },
+  { id:"DAI004", name:"Butter 225g",            cat:"Dairy",       price:145.00, stock:15,  tax:false },
+  { id:"ELC001", name:"USB Cable 3m",           cat:"Electronics", price:249.00, stock:20,  tax:true  },
+  { id:"ELC002", name:"AA Batteries 4pk",       cat:"Electronics", price:175.00, stock:35,  tax:true  },
+  { id:"ELC003", name:"Screen Wipes 20pk",      cat:"Electronics", price:159.00, stock:18,  tax:true  },
 ];
 
 const TAX_RATE = 0.035;
+let cart = {}, discountPercent = 0, activeCategory = "All", searchTerm = "";
 
-// ═══════════════════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════════════════
-let cart            = {};   // { productId: { product, qty } }
-let discountPercent = 0;
-let activeCategory  = "All";
-let searchTerm      = "";
-
-// ═══════════════════════════════════════════════════════════════════
-//  EVENT BUS  (pub-sub, mirrors the Java version)
-// ═══════════════════════════════════════════════════════════════════
 const EventBus = (() => {
-  const handlers = {};
+  const h = {};
   return {
-    on(type, fn)       { (handlers[type] = handlers[type] || []).push(fn); },
-    emit(type, payload){ (handlers[type] || []).forEach(fn => { try { fn(payload); } catch(e) { console.error(e); } }); },
-    off(type)          { delete handlers[type]; }
+    on(t,fn){ (h[t]=h[t]||[]).push(fn); },
+    emit(t,p){ (h[t]||[]).forEach(fn=>{ try{fn(p);}catch(e){console.error(e);} }); }
   };
 })();
 
-// ── Event subscriptions ───────────────────────────────────────────
 EventBus.on("ITEM_ADDED",           () => { renderCart(); renderTotals(); renderProducts(); });
 EventBus.on("ITEM_REMOVED",         () => { renderCart(); renderTotals(); renderProducts(); });
 EventBus.on("CART_CLEARED",         () => { renderCart(); renderTotals(); renderProducts(); });
 EventBus.on("DISCOUNT_CHANGED",     () => { renderTotals(); });
 EventBus.on("TRANSACTION_COMPLETE", (r) => { showReceipt(r); renderCart(); renderTotals(); renderProducts(); });
 EventBus.on("ERROR_OCCURRED",       (m) => { showToast(m, true); setStatus(m, "err"); });
-EventBus.on("VIEW_REFRESHED",       () => { renderCart(); renderTotals(); });
-
-// ═══════════════════════════════════════════════════════════════════
-//  INPUT VALIDATION
-// ═══════════════════════════════════════════════════════════════════
-function parseQty(val, min=1, max=9999) {
-  const n = parseInt(val, 10);
-  if (isNaN(n))       throw new Error(`Quantity must be a whole number.`);
-  if (n < min)        throw new Error(`Quantity must be at least ${min}.`);
-  if (n > max)        throw new Error(`Quantity cannot exceed ${max}.`);
-  return n;
-}
 
 function parseAmount(val) {
   const n = parseFloat(val);
-  if (isNaN(n) || !isFinite(n)) throw new Error("Amount must be a valid number.");
-  if (n < 0)                    throw new Error("Amount cannot be negative.");
+  if (isNaN(n)||!isFinite(n)) throw new Error("Amount must be a valid number.");
+  if (n < 0) throw new Error("Amount cannot be negative.");
   return n;
 }
-
 function parseDiscount(val) {
   const n = parseAmount(val);
   if (n > 100) throw new Error("Discount cannot exceed 100%.");
   return n;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  CONTROLLER ACTIONS
-// ═══════════════════════════════════════════════════════════════════
-
-/** Add one unit of a product (tap on card). */
 function addProduct(productId) {
   try {
     const product = INVENTORY.find(p => p.id === productId);
-    if (!product) throw new Error("Product not found: " + productId);
+    if (!product) throw new Error("Product not found.");
     if (product.stock <= 0) throw new Error(product.name + " is out of stock.");
-
-    const existing = cart[productId];
-    if (existing) {
-      if (existing.qty >= product.stock + existing.qty) throw new Error("No more stock available.");
-      existing.qty++;
-    } else {
-      cart[productId] = { product, qty: 1 };
-    }
+    if (cart[productId]) { cart[productId].qty++; } else { cart[productId] = { product, qty: 1 }; }
     product.stock--;
-
     EventBus.emit("ITEM_ADDED", cart[productId]);
     setStatus(`✔  Added: ${product.name}`, "ok");
-    flashCard(productId);
-    updateChangeDue();
-  } catch(e) {
-    EventBus.emit("ERROR_OCCURRED", e.message);
-  }
+    flashCard(productId); updateChangeDue();
+  } catch(e) { EventBus.emit("ERROR_OCCURRED", e.message); }
 }
 
-/** Increase qty of a cart item by 1. */
 function increaseQty(productId) {
   try {
     const item = cart[productId];
     if (!item) throw new Error("Item not in cart.");
-    if (item.product.stock <= 0) throw new Error("No more stock for " + item.product.name + ".");
-    item.qty++;
-    item.product.stock--;
-    EventBus.emit("ITEM_ADDED", item);
-    updateChangeDue();
-  } catch(e) {
-    EventBus.emit("ERROR_OCCURRED", e.message);
-  }
+    if (item.product.stock <= 0) throw new Error("No more stock.");
+    item.qty++; item.product.stock--;
+    EventBus.emit("ITEM_ADDED", item); updateChangeDue();
+  } catch(e) { EventBus.emit("ERROR_OCCURRED", e.message); }
 }
 
-/** Decrease qty of a cart item by 1. Remove if reaches 0. */
 function decreaseQty(productId) {
   try {
     const item = cart[productId];
     if (!item) throw new Error("Item not in cart.");
-    item.product.stock++;
-    item.qty--;
+    item.product.stock++; item.qty--;
     if (item.qty <= 0) delete cart[productId];
     EventBus.emit("ITEM_REMOVED", productId);
-    updateChangeDue();
-    setStatus("Item quantity updated.", "warn");
-  } catch(e) {
-    EventBus.emit("ERROR_OCCURRED", e.message);
-  }
+    updateChangeDue(); setStatus("Item quantity updated.", "warn");
+  } catch(e) { EventBus.emit("ERROR_OCCURRED", e.message); }
 }
 
-/** Clear the entire cart. */
 function clearCart() {
-  if (Object.keys(cart).length === 0) {
-    EventBus.emit("ERROR_OCCURRED", "Cart is already empty.");
-    return;
-  }
+  if (Object.keys(cart).length === 0) { EventBus.emit("ERROR_OCCURRED", "Cart is already empty."); return; }
   if (!confirm("Clear the entire cart?")) return;
-  // Restore stock
-  Object.values(cart).forEach(({ product, qty }) => product.stock += qty);
-  cart = {};
-  discountPercent = 0;
+  Object.values(cart).forEach(({product,qty}) => product.stock += qty);
+  cart = {}; discountPercent = 0;
   document.getElementById("discount-input").value = "0";
   EventBus.emit("CART_CLEARED", null);
-  setStatus("Cart cleared.", "warn");
-  updateChangeDue();
+  setStatus("Cart cleared.", "warn"); updateChangeDue();
 }
 
-/** Apply discount percentage. */
 function applyDiscount() {
   try {
-    const val = document.getElementById("discount-input").value;
-    discountPercent = parseDiscount(val);
+    discountPercent = parseDiscount(document.getElementById("discount-input").value);
     EventBus.emit("DISCOUNT_CHANGED", discountPercent);
     setStatus(`Discount set to ${discountPercent.toFixed(1)}%`, "ok");
-    updateChangeDue();
-    showToast(`${discountPercent}% discount applied`);
-  } catch(e) {
-    EventBus.emit("ERROR_OCCURRED", e.message);
-  }
+    updateChangeDue(); showToast(`${discountPercent}% discount applied`);
+  } catch(e) { EventBus.emit("ERROR_OCCURRED", e.message); }
 }
 
-/** Process checkout. */
 function checkout() {
   try {
     const items = Object.values(cart);
-    if (items.length === 0) throw new Error("Cannot checkout: cart is empty.");
-
+    if (items.length === 0) throw new Error("Cart is empty.");
     const tendered = parseAmount(document.getElementById("tendered-input").value);
-    const total    = grandTotal();
-    const method   = document.getElementById("payment-method").value;
-
-    if (tendered < total) {
-      throw new Error(`Insufficient payment. Total is ₱${fmt(total)} but ₱${fmt(tendered)} was tendered.`);
-    }
-
+    const total = grandTotal();
+    const method = document.getElementById("payment-method").value;
+    if (tendered < total) throw new Error(`Insufficient payment. Total ₱${fmt(total)}, tendered ₱${fmt(tendered)}.`);
     const receipt = generateReceipt(items, tendered, method);
-
-    // Commit — clear cart without restoring stock (sale is done)
-    cart = {};
-    discountPercent = 0;
+    cart = {}; discountPercent = 0;
     document.getElementById("discount-input").value = "0";
     document.getElementById("tendered-input").value = "0.00";
     document.getElementById("change-due").style.display = "none";
-
     EventBus.emit("TRANSACTION_COMPLETE", receipt);
-  } catch(e) {
-    EventBus.emit("ERROR_OCCURRED", e.message);
-  }
+  } catch(e) { EventBus.emit("ERROR_OCCURRED", e.message); }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  CALCULATIONS
-// ═══════════════════════════════════════════════════════════════════
-function subtotal() {
-  return Object.values(cart).reduce((s, {product, qty}) => s + product.price * qty, 0);
-}
-
-function discountAmount() {
-  return subtotal() * (discountPercent / 100);
-}
-
+function subtotal()       { return Object.values(cart).reduce((s,{product,qty}) => s + product.price*qty, 0); }
+function discountAmount() { return subtotal() * (discountPercent/100); }
 function taxAmount() {
-  const taxable = Object.values(cart)
-    .filter(({product}) => product.tax)
-    .reduce((s, {product, qty}) => s + product.price * qty, 0);
-  return (taxable * (1 - discountPercent / 100)) * TAX_RATE;
+  const taxable = Object.values(cart).filter(({product}) => product.tax).reduce((s,{product,qty}) => s + product.price*qty, 0);
+  return (taxable * (1 - discountPercent/100)) * TAX_RATE;
 }
+function grandTotal()     { return subtotal() - discountAmount() + taxAmount(); }
+function cartItemCount()  { return Object.values(cart).reduce((s,{qty}) => s+qty, 0); }
+function fmt(n)           { return n.toFixed(2); }
 
-function grandTotal() {
-  return subtotal() - discountAmount() + taxAmount();
-}
-
-function cartItemCount() {
-  return Object.values(cart).reduce((s, {qty}) => s + qty, 0);
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  RECEIPT GENERATION
-// ═══════════════════════════════════════════════════════════════════
 function generateReceipt(items, tendered, method) {
-  const id      = "RCP-" + Math.random().toString(36).substr(2,8).toUpperCase();
-  const now     = new Date();
-  const dateStr = now.toLocaleDateString("en-US", { weekday:"short", year:"numeric", month:"short", day:"numeric" });
+  const id = "RCP-" + Math.random().toString(36).substr(2,8).toUpperCase();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-US", {weekday:"short",year:"numeric",month:"short",day:"numeric"});
   const timeStr = now.toLocaleTimeString("en-US");
-  const sub     = subtotal();
-  const disc    = discountAmount();
-  const tax     = taxAmount();
-  const total   = grandTotal();
-  const change  = tendered - total;
-
-  const LINE = "═".repeat(48);
-  const THIN = "─".repeat(48);
-
-  let body = `\n${LINE}\n`;
-  body += `         ★  BONNIE'S POS SYSTEM  ★\n`;
-  body += `${LINE}\n`;
-  body += `  Receipt  : ${id}\n`;
-  body += `  Date     : ${dateStr}\n`;
-  body += `  Time     : ${timeStr}\n`;
-  body += `  Payment  : ${method}\n`;
-  body += `${THIN}\n`;
-  body += `  ${"ITEM".padEnd(22)} ${"QTY".padStart(4)}  ${"TOTAL".padStart(9)}\n`;
-  body += `${THIN}\n`;
-
-  items.forEach(({product, qty}) => {
-    const name  = product.name.length > 22 ? product.name.substr(0,21)+"…" : product.name.padEnd(22);
-    const q     = String(qty).padStart(4);
-    const total = ("₱"+fmt(product.price * qty)).padStart(9);
-    body += `  ${name} ${q}  ${total}\n`;
+  const sub=subtotal(), disc=discountAmount(), tax=taxAmount(), total=grandTotal(), change=tendered-total;
+  const LINE="═".repeat(48), THIN="─".repeat(48);
+  let body=`\n${LINE}\n`;
+  body+=`         ★  BONNIE'S POS SYSTEM  ★\n${LINE}\n`;
+  body+=`  Receipt  : ${id}\n  Date     : ${dateStr}\n  Time     : ${timeStr}\n  Payment  : ${method}\n${THIN}\n`;
+  body+=`  ${"ITEM".padEnd(22)} ${"QTY".padStart(4)}  ${"TOTAL".padStart(9)}\n${THIN}\n`;
+  items.forEach(({product,qty}) => {
+    const name = product.name.length>22 ? product.name.substr(0,21)+"…" : product.name.padEnd(22);
+    body+=`  ${name} ${String(qty).padStart(4)}  ${("₱"+fmt(product.price*qty)).padStart(9)}\n`;
   });
-
-  body += `${THIN}\n`;
-  body += `  ${"Subtotal:".padEnd(30)} ${"₱"+fmt(sub)}\n`;
-  if (discountPercent > 0) {
-    body += `  ${("Discount ("+discountPercent.toFixed(0)+"%):" ).padEnd(30)} -₱${fmt(disc)}\n`;
-  }
-  body += `  ${"Tax (3.5%):".padEnd(30)} ${"₱"+fmt(tax)}\n`;
-  body += `${LINE}\n`;
-  body += `  ${"GRAND TOTAL:".padEnd(30)} ${"₱"+fmt(total)}\n`;
-  body += `  ${"Tendered:".padEnd(30)} ${"₱"+fmt(tendered)}\n`;
-  body += `  ${"Change:".padEnd(30)} ${"₱"+fmt(change)}\n`;
-  body += `${LINE}\n`;
-  body += `      Thank you for shopping with us!\n`;
-  body += `${LINE}\n`;
-
+  body+=`${THIN}\n  ${"Subtotal:".padEnd(30)} ${"₱"+fmt(sub)}\n`;
+  if (discountPercent>0) body+=`  ${("Discount ("+discountPercent.toFixed(0)+"%):" ).padEnd(30)} -₱${fmt(disc)}\n`;
+  body+=`  ${"Tax (3.5%):".padEnd(30)} ${"₱"+fmt(tax)}\n${LINE}\n`;
+  body+=`  ${"GRAND TOTAL:".padEnd(30)} ${"₱"+fmt(total)}\n`;
+  body+=`  ${"Tendered:".padEnd(30)} ${"₱"+fmt(tendered)}\n`;
+  body+=`  ${"Change:".padEnd(30)} ${"₱"+fmt(change)}\n${LINE}\n`;
+  body+=`      Thank you for shopping with us!\n${LINE}\n`;
   return { id, body, change, total };
 }
-
-// ═══════════════════════════════════════════════════════════════════
-//  RENDER FUNCTIONS
-// ═══════════════════════════════════════════════════════════════════
 
 function renderProducts() {
   const grid = document.getElementById("product-grid");
   const filtered = INVENTORY.filter(p => {
-    const matchCat  = activeCategory === "All" || p.cat === activeCategory;
-    const matchTerm = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      p.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCat  = activeCategory==="All" || p.cat===activeCategory;
+    const matchTerm = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCat && matchTerm;
   });
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--ink-muted); padding:40px 0; font-size:14px;">No products found.</div>`;
-    return;
-  }
-
+  if (!filtered.length) { grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--ink-muted);padding:40px 0;font-size:14px;">No products found.</div>`; return; }
   grid.innerHTML = filtered.map(p => {
-    const stockClass = p.stock === 0 ? "out-of-stock" : "";
-    const stockLabel = p.stock === 0 ? "Out of stock"
-                     : p.stock <= 5  ? `⚠ Only ${p.stock} left`
-                     : `${p.stock} in stock`;
-    const stockCls   = p.stock <= 5 && p.stock > 0 ? "low" : "";
-    return `
-      <div class="product-card ${stockClass}" onclick="addProduct('${p.id}')" id="card-${p.id}">
-        ${p.tax ? '<span class="tax-tag">TAX</span>' : ''}
-        <div class="cat-badge">${p.cat}</div>
-        <div class="p-name">${p.name}</div>
-        <div class="p-bottom">
-          <span class="p-price">₱${p.price.toFixed(2)}</span>
-          <span class="p-stock ${stockCls}">${stockLabel}</span>
-        </div>
-      </div>`;
+    const oos = p.stock===0, stockLabel = oos?"Out of stock":p.stock<=5?`⚠ Only ${p.stock} left`:`${p.stock} in stock`;
+    return `<div class="product-card ${oos?'out-of-stock':''}" onclick="addProduct('${p.id}')" id="card-${p.id}">
+      ${p.tax?'<span class="tax-tag">TAX</span>':''}
+      <div class="cat-badge">${p.cat}</div>
+      <div class="p-name">${p.name}</div>
+      <div class="p-bottom">
+        <span class="p-price">₱${p.price.toFixed(2)}</span>
+        <span class="p-stock ${p.stock<=5&&!oos?'low':''}">${stockLabel}</span>
+      </div>
+    </div>`;
   }).join("");
 }
 
 function renderCart() {
   const container = document.getElementById("cart-items");
-  const emptyMsg  = document.getElementById("cart-empty");
-  const items     = Object.values(cart);
-  const badge     = document.getElementById("cart-badge");
-
-  badge.textContent = cartItemCount();
-
-  if (items.length === 0) {
-    container.innerHTML = "";
-    container.appendChild(emptyMsg || createEmptyState());
-    document.getElementById("checkout-btn").disabled = true;
-    return;
+  const items = Object.values(cart);
+  document.getElementById("cart-badge").textContent = cartItemCount();
+  if (!items.length) {
+    container.innerHTML=""; container.appendChild(createEmptyState());
+    document.getElementById("checkout-btn").disabled=true; return;
   }
-
-  document.getElementById("checkout-btn").disabled = false;
-  container.innerHTML = items.map(({product, qty}) => `
+  document.getElementById("checkout-btn").disabled=false;
+  container.innerHTML = items.map(({product,qty}) => `
     <div class="cart-row">
-      <div class="cr-name">
-        ${product.name}
-        <div class="cr-id">${product.id}</div>
-      </div>
+      <div class="cr-name">${product.name}<div class="cr-id">${product.id}</div></div>
       <div class="qty-controls">
         <button class="qty-btn remove" onclick="decreaseQty('${product.id}')" title="Remove one">−</button>
         <span class="qty-num">${qty}</span>
         <button class="qty-btn" onclick="increaseQty('${product.id}')" title="Add one">+</button>
       </div>
-      <div class="cr-total">₱${fmt(product.price * qty)}</div>
-    </div>
-  `).join("");
+      <div class="cr-total">₱${fmt(product.price*qty)}</div>
+    </div>`).join("");
 }
 
 function renderTotals() {
-  const sub  = subtotal();
-  const disc = discountAmount();
-  const tax  = taxAmount();
-  const tot  = grandTotal();
-
-  document.getElementById("t-subtotal").textContent = `₱${fmt(sub)}`;
-  document.getElementById("t-discount").textContent = `-₱${fmt(disc)}`;
-  document.getElementById("t-tax").textContent      = `₱${fmt(tax)}`;
-  document.getElementById("t-total").textContent    = `₱${fmt(tot)}`;
+  document.getElementById("t-subtotal").textContent = `₱${fmt(subtotal())}`;
+  document.getElementById("t-discount").textContent = `-₱${fmt(discountAmount())}`;
+  document.getElementById("t-tax").textContent      = `₱${fmt(taxAmount())}`;
+  document.getElementById("t-total").textContent    = `₱${fmt(grandTotal())}`;
 }
 
 function renderCategories() {
-  const cats = ["All", ...new Set(INVENTORY.map(p => p.cat))];
-  document.getElementById("cat-chips").innerHTML = cats.map(c => `
-    <button class="chip ${c === activeCategory ? 'active' : ''}" onclick="filterCategory('${c}')">${c}</button>
-  `).join("");
+  const cats = ["All",...new Set(INVENTORY.map(p=>p.cat))];
+  document.getElementById("cat-chips").innerHTML = cats.map(c =>
+    `<button class="chip ${c===activeCategory?'active':''}" onclick="filterCategory('${c}')">${c}</button>`
+  ).join("");
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  EVENT HANDLERS (UI)
-// ═══════════════════════════════════════════════════════════════════
+function filterCategory(cat) { activeCategory=cat; renderCategories(); renderProducts(); }
 
-function filterCategory(cat) {
-  activeCategory = cat;
-  renderCategories();
-  renderProducts();
-}
-
-// Search input (keypress + change events)
-document.getElementById("search-input").addEventListener("input", e => {
-  searchTerm = e.target.value.trim();
-  renderProducts();
-});
-
-document.getElementById("search-input").addEventListener("keydown", e => {
-  if (e.key === "Escape") {
-    searchTerm = "";
-    e.target.value = "";
-    renderProducts();
-  }
-});
-
-// Tendered field — live change-due preview (document change event)
+document.getElementById("search-input").addEventListener("input", e => { searchTerm=e.target.value.trim(); renderProducts(); });
+document.getElementById("search-input").addEventListener("keydown", e => { if(e.key==="Escape"){searchTerm="";e.target.value="";renderProducts();} });
 document.getElementById("tendered-input").addEventListener("input", updateChangeDue);
-
-// Discount field — apply on Enter
-document.getElementById("discount-input").addEventListener("keydown", e => {
-  if (e.key === "Enter") applyDiscount();
-});
-
-// ═══════════════════════════════════════════════════════════════════
-//  UTILITIES
-// ═══════════════════════════════════════════════════════════════════
-
-function fmt(n) { return n.toFixed(2); }
+document.getElementById("discount-input").addEventListener("keydown", e => { if(e.key==="Enter") applyDiscount(); });
 
 function updateChangeDue() {
-  const el = document.getElementById("change-due");
+  const el=document.getElementById("change-due");
   try {
-    const tendered = parseFloat(document.getElementById("tendered-input").value) || 0;
-    const total    = grandTotal();
-    const change   = tendered - total;
-
-    if (total <= 0 || tendered <= 0) { el.style.display = "none"; return; }
-
-    if (change >= 0) {
-      el.style.display    = "block";
-      el.style.background = "var(--teal-light)";
-      el.style.color      = "var(--teal-dark)";
-      el.textContent      = `✓  Change due: ₱${fmt(change)}`;
-    } else {
-      el.style.display    = "block";
-      el.style.background = "var(--amber-light)";
-      el.style.color      = "var(--amber)";
-      el.textContent      = `⚠  Still owed: ₱${fmt(-change)}`;
-    }
-  } catch { el.style.display = "none"; }
+    const tendered=parseFloat(document.getElementById("tendered-input").value)||0;
+    const change=tendered-grandTotal();
+    if(grandTotal()<=0||tendered<=0){el.style.display="none";return;}
+    el.style.display="block";
+    if(change>=0){el.style.background="var(--teal-light)";el.style.color="var(--teal-dark)";el.textContent=`✓  Change due: ₱${fmt(change)}`;}
+    else{el.style.background="var(--amber-light)";el.style.color="var(--amber)";el.textContent=`⚠  Still owed: ₱${fmt(-change)}`;}
+  } catch{el.style.display="none";}
 }
 
 let toastTimer;
-function showToast(msg, isError = false) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.className   = "show" + (isError ? " error" : "");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = ""; }, 3000);
+function showToast(msg,isError=false){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.className="show"+(isError?" error":"");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{el.className="";},3000);
 }
 
-function setStatus(msg, type = "") {
-  const el = document.getElementById("status-msg");
-  el.textContent = msg;
-  el.className   = type;
+function setStatus(msg,type=""){
+  const el=document.getElementById("status-msg");
+  el.textContent=msg; el.className=type;
 }
 
-function flashCard(productId) {
-  const card = document.getElementById("card-" + productId);
-  if (!card) return;
-  const ripple = document.createElement("div");
-  ripple.className = "add-ripple";
-  card.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 400);
+function flashCard(id){
+  const card=document.getElementById("card-"+id); if(!card) return;
+  const r=document.createElement("div"); r.className="add-ripple";
+  card.appendChild(r); setTimeout(()=>r.remove(),400);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  THERMAL PRINTER — Web Serial API
-//  Works in Chrome / Edge on desktop and Android (requires HTTPS or localhost)
-//  User clicks "Connect Printer" once per session; browser remembers the port.
-// ═══════════════════════════════════════════════════════════════════
+// ── Thermal Printer — Web Serial API ─────────────────────────────
+let serialPort=null;
 
-let serialPort   = null;   // Web Serial port handle
-let serialWriter = null;   // WritableStreamDefaultWriter
-
-/** Opens the browser's serial port picker and connects to the thermal printer. */
-async function connectThermalPrinter() {
-  if (!("serial" in navigator)) {
-    setPrinterStatus("⚠ Web Serial API not supported. Use Chrome or Edge on desktop/Android.", true);
-    return;
-  }
-  try {
-    // Show the browser's port picker dialog
-    serialPort = await navigator.serial.requestPort();
-    await serialPort.open({ baudRate: 9600 });
-
-    const textEncoder = new TextEncoderStream();
-    textEncoder.readable.pipeTo(serialPort.writable);
-    serialWriter = textEncoder.writable.getWriter();
-
-    document.getElementById("btn-print-receipt").disabled = false;
-    document.getElementById("btn-connect-printer").textContent = "✅ Connected";
-    document.getElementById("btn-connect-printer").disabled = true;
+async function connectThermalPrinter(){
+  if(!("serial" in navigator)){setPrinterStatus("⚠ Use Chrome or Edge browser.",true);return;}
+  try{
+    serialPort=await navigator.serial.requestPort();
+    await serialPort.open({baudRate:9600});
+    document.getElementById("btn-print-receipt").disabled=false;
+    document.getElementById("btn-connect-printer").textContent="✅ Connected";
+    document.getElementById("btn-connect-printer").disabled=true;
     setPrinterStatus("Printer connected! Ready to print.");
-  } catch (err) {
-    if (err.name !== "NotFoundError") {         // user cancelled = silent
-      setPrinterStatus("Connection failed: " + err.message, true);
-    }
-  }
+  }catch(err){if(err.name!=="NotFoundError") setPrinterStatus("Connection failed: "+err.message,true);}
 }
 
-/** Sends the receipt text + ESC/POS commands to the thermal printer. */
-async function printReceiptSerial() {
-  const receiptText = document.getElementById("receipt-body").textContent;
-  if (!receiptText || !serialWriter) {
-    setPrinterStatus("Printer not connected.", true);
-    return;
-  }
-  try {
-    const ESC_INIT  = new Uint8Array([0x1B, 0x40]);              // Initialize
-    const FEED      = new Uint8Array([0x0A, 0x0A, 0x0A]);        // 3 line feeds
-    const CUT_PAPER = new Uint8Array([0x1D, 0x56, 0x41, 0x10]); // Full cut
-
-    const textBytes = new TextEncoder().encode(receiptText);
-
-    // Combine all byte arrays: INIT + text + FEED + CUT
-    const printData = new Uint8Array(
-      ESC_INIT.length + textBytes.length + FEED.length + CUT_PAPER.length
-    );
-    let pos = 0;
-    printData.set(ESC_INIT,  pos); pos += ESC_INIT.length;
-    printData.set(textBytes, pos); pos += textBytes.length;
-    printData.set(FEED,      pos); pos += FEED.length;
-    printData.set(CUT_PAPER, pos);
-
-    // Write raw bytes directly to the serial port
-    const writer = serialPort.writable.getWriter();
-    await writer.write(printData);
-    writer.releaseLock();
-
-    setPrinterStatus("✔ Receipt printed!");
-    showToast("Receipt sent to printer!");
-  } catch (err) {
-    setPrinterStatus("Print failed: " + err.message, true);
-  }
+async function printReceiptSerial(){
+  const text=document.getElementById("receipt-body").textContent;
+  if(!text||!serialPort){setPrinterStatus("Printer not connected.",true);return;}
+  try{
+    const ESC_INIT=new Uint8Array([0x1B,0x40]);
+    const FEED=new Uint8Array([0x0A,0x0A,0x0A]);
+    const CUT=new Uint8Array([0x1D,0x56,0x41,0x10]);
+    const textBytes=new TextEncoder().encode(text);
+    const data=new Uint8Array(ESC_INIT.length+textBytes.length+FEED.length+CUT.length);
+    let pos=0;
+    data.set(ESC_INIT,pos); pos+=ESC_INIT.length;
+    data.set(textBytes,pos); pos+=textBytes.length;
+    data.set(FEED,pos); pos+=FEED.length;
+    data.set(CUT,pos);
+    const writer=serialPort.writable.getWriter();
+    await writer.write(data); writer.releaseLock();
+    setPrinterStatus("✔ Receipt printed!"); showToast("Receipt sent to printer!");
+  }catch(err){setPrinterStatus("Print failed: "+err.message,true);}
 }
 
-function setPrinterStatus(msg, isError = false) {
-  const el = document.getElementById("printer-status");
-  if (el) {
-    el.textContent = msg;
-    el.style.color = isError ? "var(--red)" : "var(--teal-dark)";
-  }
+function setPrinterStatus(msg,isError=false){
+  const el=document.getElementById("printer-status");
+  if(el){el.textContent=msg;el.style.color=isError?"var(--red)":"var(--teal-dark)";}
 }
 
-function showReceipt(receipt) {
-  document.getElementById("receipt-body").textContent = receipt.body;
-  document.getElementById("receipt-modal").style.display = "flex";
-
-  // Reset print button state if already connected
-  if (serialPort) {
-    document.getElementById("btn-print-receipt").disabled = false;
-  }
-  setPrinterStatus(serialPort ? "Ready to print." : "Click 'Connect Printer' to link your thermal printer.");
+function showReceipt(receipt){
+  document.getElementById("receipt-body").textContent=receipt.body;
+  document.getElementById("receipt-modal").style.display="flex";
+  if(serialPort) document.getElementById("btn-print-receipt").disabled=false;
+  setPrinterStatus(serialPort?"Ready to print.":"Click 'Connect Printer' to link your thermal printer.");
   showToast(`Transaction complete! Change: ₱${fmt(receipt.change)}`);
 }
 
-function closeReceipt() {
-  document.getElementById("receipt-modal").style.display = "none";
-}
+function closeReceipt(){ document.getElementById("receipt-modal").style.display="none"; }
 
-function createEmptyState() {
-  const d = document.createElement("div");
-  d.id = "cart-empty";
-  d.className = "cart-empty";
-  d.innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><p>Tap a product to add it</p>`;
+function createEmptyState(){
+  const d=document.createElement("div"); d.id="cart-empty"; d.className="cart-empty";
+  d.innerHTML=`<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><p>Tap a product to add it</p>`;
   return d;
 }
 
-// Live clock
-function updateClock() {
-  const now = new Date();
-  document.getElementById("clock").textContent =
-    now.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) +
-    "  " + now.toLocaleTimeString("en-US");
+function updateClock(){
+  const now=new Date();
+  document.getElementById("clock").textContent=
+    now.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+"  "+now.toLocaleTimeString("en-US");
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock,1000); updateClock();
 
-// ═══════════════════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════════════════
-renderCategories();
-renderProducts();
-renderCart();
-renderTotals();
+renderCategories(); renderProducts(); renderCart(); renderTotals();
 </script>
 </body>
 </html>
