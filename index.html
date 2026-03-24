@@ -755,8 +755,15 @@
     <h2>🧾 Transaction Complete</h2>
     <div class="receipt-body" id="receipt-body"></div>
     <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="connectThermalPrinter()" id="btn-connect-printer" title="Connect thermal printer via USB/Serial">
+        🔌 Connect Printer
+      </button>
+      <button class="btn btn-amber" onclick="printReceiptSerial()" id="btn-print-receipt" disabled title="Print receipt to thermal printer">
+        🖨 Print Receipt
+      </button>
       <button class="btn btn-primary" onclick="closeReceipt()">✓ Done</button>
     </div>
+    <div id="printer-status" style="margin-top:10px; font-size:12px; font-family:var(--font-mono); color:var(--ink-muted); text-align:center;"></div>
   </div>
 </div>
 
@@ -1217,9 +1224,94 @@ function flashCard(productId) {
   setTimeout(() => ripple.remove(), 400);
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  THERMAL PRINTER — Web Serial API
+//  Works in Chrome / Edge on desktop and Android (requires HTTPS or localhost)
+//  User clicks "Connect Printer" once per session; browser remembers the port.
+// ═══════════════════════════════════════════════════════════════════
+
+let serialPort   = null;   // Web Serial port handle
+let serialWriter = null;   // WritableStreamDefaultWriter
+
+/** Opens the browser's serial port picker and connects to the thermal printer. */
+async function connectThermalPrinter() {
+  if (!("serial" in navigator)) {
+    setPrinterStatus("⚠ Web Serial API not supported. Use Chrome or Edge on desktop/Android.", true);
+    return;
+  }
+  try {
+    // Show the browser's port picker dialog
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 9600 });
+
+    const textEncoder = new TextEncoderStream();
+    textEncoder.readable.pipeTo(serialPort.writable);
+    serialWriter = textEncoder.writable.getWriter();
+
+    document.getElementById("btn-print-receipt").disabled = false;
+    document.getElementById("btn-connect-printer").textContent = "✅ Connected";
+    document.getElementById("btn-connect-printer").disabled = true;
+    setPrinterStatus("Printer connected! Ready to print.");
+  } catch (err) {
+    if (err.name !== "NotFoundError") {         // user cancelled = silent
+      setPrinterStatus("Connection failed: " + err.message, true);
+    }
+  }
+}
+
+/** Sends the receipt text + ESC/POS commands to the thermal printer. */
+async function printReceiptSerial() {
+  const receiptText = document.getElementById("receipt-body").textContent;
+  if (!receiptText || !serialWriter) {
+    setPrinterStatus("Printer not connected.", true);
+    return;
+  }
+  try {
+    const ESC_INIT  = new Uint8Array([0x1B, 0x40]);              // Initialize
+    const FEED      = new Uint8Array([0x0A, 0x0A, 0x0A]);        // 3 line feeds
+    const CUT_PAPER = new Uint8Array([0x1D, 0x56, 0x41, 0x10]); // Full cut
+
+    const textBytes = new TextEncoder().encode(receiptText);
+
+    // Combine all byte arrays: INIT + text + FEED + CUT
+    const printData = new Uint8Array(
+      ESC_INIT.length + textBytes.length + FEED.length + CUT_PAPER.length
+    );
+    let pos = 0;
+    printData.set(ESC_INIT,  pos); pos += ESC_INIT.length;
+    printData.set(textBytes, pos); pos += textBytes.length;
+    printData.set(FEED,      pos); pos += FEED.length;
+    printData.set(CUT_PAPER, pos);
+
+    // Write raw bytes directly to the serial port
+    const writer = serialPort.writable.getWriter();
+    await writer.write(printData);
+    writer.releaseLock();
+
+    setPrinterStatus("✔ Receipt printed!");
+    showToast("Receipt sent to printer!");
+  } catch (err) {
+    setPrinterStatus("Print failed: " + err.message, true);
+  }
+}
+
+function setPrinterStatus(msg, isError = false) {
+  const el = document.getElementById("printer-status");
+  if (el) {
+    el.textContent = msg;
+    el.style.color = isError ? "var(--red)" : "var(--teal-dark)";
+  }
+}
+
 function showReceipt(receipt) {
   document.getElementById("receipt-body").textContent = receipt.body;
   document.getElementById("receipt-modal").style.display = "flex";
+
+  // Reset print button state if already connected
+  if (serialPort) {
+    document.getElementById("btn-print-receipt").disabled = false;
+  }
+  setPrinterStatus(serialPort ? "Ready to print." : "Click 'Connect Printer' to link your thermal printer.");
   showToast(`Transaction complete! Change: ₱${fmt(receipt.change)}`);
 }
 
