@@ -98,14 +98,42 @@
   /* Cart title row — never shrinks */
   .cart-title { flex-shrink: 0; }
 
-  /* Cart items — grows to fill available space, scrolls internally */
+  /* Cart items — grows to fill available space, scrolls smoothly */
   #cart-items {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* smooth momentum on iOS/Android */
+
+    /* Scroll shadow: fades top & bottom edges to hint more content */
+    background:
+      linear-gradient(var(--white) 30%, transparent) top / 100% 20px,
+      linear-gradient(transparent, var(--white) 70%) bottom / 100% 20px,
+      radial-gradient(farthest-side at 50% 0,   rgba(0,0,0,0.08), transparent) top    / 100% 8px,
+      radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,0.08), transparent) bottom / 100% 8px;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+
+  /* Scroll indicator badge — shows when cart has scrollable content */
+  .scroll-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.5px;
+    padding: 2px 0;
+    flex-shrink: 0;
+    animation: bounce 1.5s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(3px); }
   }
 
   /* Checkout section — fixed height at bottom, never overlaps cart */
@@ -571,12 +599,17 @@ function renderCart() {
   const container = document.getElementById("cart-items");
   const items = Object.values(cart);
   document.getElementById("cart-badge").textContent = cartItemCount();
+
   if (!items.length) {
-    container.innerHTML=""; container.appendChild(createEmptyState());
-    document.getElementById("checkout-btn").disabled=true; return;
+    container.innerHTML = "";
+    container.appendChild(createEmptyState());
+    document.getElementById("checkout-btn").disabled = true;
+    return;
   }
-  document.getElementById("checkout-btn").disabled=false;
-  container.innerHTML = items.map(({product,qty}) => `
+
+  document.getElementById("checkout-btn").disabled = false;
+
+  container.innerHTML = items.map(({product, qty}) => `
     <div class="cart-row">
       <div class="cr-name">${product.name}<div class="cr-id">${product.id}</div></div>
       <div class="qty-controls">
@@ -584,8 +617,23 @@ function renderCart() {
         <span class="qty-num">${qty}</span>
         <button class="qty-btn" onclick="increaseQty('${product.id}')" title="Add one">+</button>
       </div>
-      <div class="cr-total">₱${fmt(product.price*qty)}</div>
+      <div class="cr-total">₱${fmt(product.price * qty)}</div>
     </div>`).join("");
+
+  // Show scroll hint when list overflows
+  const isScrollable = container.scrollHeight > container.clientHeight;
+  const existingHint = container.parentElement.querySelector('.scroll-hint');
+  if (isScrollable && !existingHint) {
+    const hint = document.createElement('div');
+    hint.className = 'scroll-hint';
+    hint.textContent = '▾ scroll for more items ▾';
+    container.after(hint);
+  } else if (!isScrollable && existingHint) {
+    existingHint.remove();
+  }
+
+  // Auto-scroll to bottom when a new item is added
+  container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
 }
 
 function renderTotals() {
