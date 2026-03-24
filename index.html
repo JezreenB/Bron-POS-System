@@ -650,7 +650,7 @@
   <header>
     <div class="header-brand">
       <div class="logo">☕</div>
-      <h1>Bonnie's </h1>
+      <h1>Bonnie's</h1>
     </div>
     <div id="clock"></div>
   </header>
@@ -706,7 +706,7 @@
       <div class="totals-grid" id="totals-grid">
         <span class="t-label">Subtotal</span>       <span class="t-value" id="t-subtotal">₱0.00</span>
         <span class="t-label discount">Discount</span>     <span class="t-value discount" id="t-discount">-₱0.00</span>
-        <span class="t-label">Tax (8.5%)</span>     <span class="t-value" id="t-tax">₱0.00</span>
+        <span class="t-label">Tax (3.5%)</span>     <span class="t-value" id="t-tax">₱0.00</span>
         <span class="t-label grand">Grand Total</span><span class="t-value grand" id="t-total">₱0.00</span>
       </div>
 
@@ -741,7 +741,7 @@
   <!-- ── Status bar ───────────────────────────────────────────────── -->
   <div id="status-bar">
     <span id="status-msg">Ready — tap any product to add it to the cart.</span>
-    <span style="color:#334155; font-size:11px;">Bonnie's  POS v1.0</span>
+    <span style="color:#334155; font-size:11px;">Bonnie's POS v1.0</span>
   </div>
 
 </div>
@@ -1010,7 +1010,7 @@ function generateReceipt(items, tendered, method) {
   const THIN = "─".repeat(48);
 
   let body = `\n${LINE}\n`;
-  body += `         ★  Bonnie's  POS SYSTEM  ★\n`;
+  body += `         ★  BONNIE'S POS SYSTEM  ★\n`;
   body += `${LINE}\n`;
   body += `  Receipt  : ${id}\n`;
   body += `  Date     : ${dateStr}\n`;
@@ -1032,7 +1032,7 @@ function generateReceipt(items, tendered, method) {
   if (discountPercent > 0) {
     body += `  ${("Discount ("+discountPercent.toFixed(0)+"%):" ).padEnd(30)} -₱${fmt(disc)}\n`;
   }
-  body += `  ${"Tax (8.5%):".padEnd(30)} ${"₱"+fmt(tax)}\n`;
+  body += `  ${"Tax (3.5%):".padEnd(30)} ${"₱"+fmt(tax)}\n`;
   body += `${LINE}\n`;
   body += `  ${"GRAND TOTAL:".padEnd(30)} ${"₱"+fmt(total)}\n`;
   body += `  ${"Tendered:".padEnd(30)} ${"₱"+fmt(tendered)}\n`;
