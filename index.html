@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Java Mart — POS System</title>
+<title>Bonnie's — POS System</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   /* ── Reset & Variables ─────────────────────────────────────────── */
@@ -704,15 +704,15 @@
 
       <!-- Totals -->
       <div class="totals-grid" id="totals-grid">
-        <span class="t-label">Subtotal</span>       <span class="t-value" id="t-subtotal">$0.00</span>
-        <span class="t-label discount">Discount</span>     <span class="t-value discount" id="t-discount">-$0.00</span>
-        <span class="t-label">Tax (8.5%)</span>     <span class="t-value" id="t-tax">$0.00</span>
-        <span class="t-label grand">Grand Total</span><span class="t-value grand" id="t-total">$0.00</span>
+        <span class="t-label">Subtotal</span>       <span class="t-value" id="t-subtotal">₱0.00</span>
+        <span class="t-label discount">Discount</span>     <span class="t-value discount" id="t-discount">-₱0.00</span>
+        <span class="t-label">Tax (8.5%)</span>     <span class="t-value" id="t-tax">₱0.00</span>
+        <span class="t-label grand">Grand Total</span><span class="t-value grand" id="t-total">₱0.00</span>
       </div>
 
       <!-- Payment -->
       <div class="control-row">
-        <label>Tendered $</label>
+        <label>Tendered ₱</label>
         <input type="number" id="tendered-input" value="0.00" min="0" step="0.01" style="padding-left:12px;">
       </div>
 
@@ -766,32 +766,32 @@
 // ═══════════════════════════════════════════════════════════════════
 const INVENTORY = [
   // Beverages
-  { id:"BEV001", name:"Coca-Cola 12oz",     cat:"Beverages",   price:1.99, stock:50, tax:true  },
-  { id:"BEV002", name:"Mineral Water 16oz", cat:"Beverages",   price:0.99, stock:75, tax:true  },
-  { id:"BEV003", name:"Orange Juice 32oz",  cat:"Beverages",   price:3.49, stock:30, tax:true  },
-  { id:"BEV004", name:"Energy Drink 8oz",   cat:"Beverages",   price:2.79, stock:40, tax:true  },
+  { id:"BEV001", name:"Coca-Cola 12oz",     cat:"Beverages",   price:55.00, stock:50, tax:true  },
+  { id:"BEV002", name:"Mineral Water 16oz", cat:"Beverages",   price:25.00, stock:75, tax:true  },
+  { id:"BEV003", name:"Orange Juice 32oz",  cat:"Beverages",   price:95.00, stock:30, tax:true  },
+  { id:"BEV004", name:"Energy Drink 8oz",   cat:"Beverages",   price:75.00, stock:40, tax:true  },
   // Snacks
-  { id:"SNK001", name:"Potato Chips",       cat:"Snacks",      price:1.49, stock:60, tax:true  },
-  { id:"SNK002", name:"Chocolate Bar",      cat:"Snacks",      price:1.29, stock:80, tax:true  },
-  { id:"SNK003", name:"Trail Mix 6oz",      cat:"Snacks",      price:2.99, stock:25, tax:true  },
-  { id:"SNK004", name:"Granola Bar",        cat:"Snacks",      price:0.89, stock:45, tax:true  },
+  { id:"SNK001", name:"Potato Chips",       cat:"Snacks",      price:40.00, stock:60, tax:true  },
+  { id:"SNK002", name:"Chocolate Bar",      cat:"Snacks",      price:35.00, stock:80, tax:true  },
+  { id:"SNK003", name:"Trail Mix 6oz",      cat:"Snacks",      price:85.00, stock:25, tax:true  },
+  { id:"SNK004", name:"Granola Bar",        cat:"Snacks",      price:25.00, stock:45, tax:true  },
   // Produce (tax-exempt)
-  { id:"PRD001", name:"Apple (per lb)",     cat:"Produce",     price:1.20, stock:100,tax:false },
-  { id:"PRD002", name:"Banana (per lb)",    cat:"Produce",     price:0.59, stock:90, tax:false },
-  { id:"PRD003", name:"Broccoli (head)",    cat:"Produce",     price:1.89, stock:35, tax:false },
-  { id:"PRD004", name:"Baby Carrots 1lb",   cat:"Produce",     price:1.49, stock:50, tax:false },
+  { id:"PRD001", name:"Apple (per kg)",     cat:"Produce",     price:120.00, stock:100,tax:false },
+  { id:"PRD002", name:"Banana (per kg)",    cat:"Produce",     price:60.00, stock:90, tax:false },
+  { id:"PRD003", name:"Broccoli (head)",    cat:"Produce",     price:80.00, stock:35, tax:false },
+  { id:"PRD004", name:"Baby Carrots 500g",   cat:"Produce",     price:75.00, stock:50, tax:false },
   // Dairy
-  { id:"DAI001", name:"Whole Milk 1 gal",   cat:"Dairy",       price:3.99, stock:20, tax:false },
-  { id:"DAI002", name:"Cheddar Cheese 8oz", cat:"Dairy",       price:4.49, stock:30, tax:true  },
-  { id:"DAI003", name:"Greek Yogurt 5oz",   cat:"Dairy",       price:1.79, stock:40, tax:false },
-  { id:"DAI004", name:"Butter 1lb",         cat:"Dairy",       price:5.29, stock:15, tax:false },
+  { id:"DAI001", name:"Fresh Milk 1L",   cat:"Dairy",       price:110.00, stock:20, tax:false },
+  { id:"DAI002", name:"Cheddar Cheese 8oz", cat:"Dairy",       price:195.00, stock:30, tax:true  },
+  { id:"DAI003", name:"Yogurt 125g",   cat:"Dairy",       price:55.00, stock:40, tax:false },
+  { id:"DAI004", name:"Butter 225g",         cat:"Dairy",       price:145.00, stock:15, tax:false },
   // Electronics
-  { id:"ELC001", name:"USB Cable 6ft",      cat:"Electronics", price:7.99, stock:20, tax:true  },
-  { id:"ELC002", name:"AA Batteries 4pk",   cat:"Electronics", price:5.49, stock:35, tax:true  },
-  { id:"ELC003", name:"Screen Wipes 20pk",  cat:"Electronics", price:4.99, stock:18, tax:true  },
+  { id:"ELC001", name:"USB Cable 6ft",      cat:"Electronics", price:249.00, stock:20, tax:true  },
+  { id:"ELC002", name:"AA Batteries 4pk",   cat:"Electronics", price:175.00, stock:35, tax:true  },
+  { id:"ELC003", name:"Screen Wipes 20pk",  cat:"Electronics", price:159.00, stock:18, tax:true  },
 ];
 
-const TAX_RATE = 0.085;
+const TAX_RATE = 0.035;
 
 // ═══════════════════════════════════════════════════════════════════
 //  STATE
@@ -948,7 +948,7 @@ function checkout() {
     const method   = document.getElementById("payment-method").value;
 
     if (tendered < total) {
-      throw new Error(`Insufficient payment. Total is $${fmt(total)} but $${fmt(tendered)} was tendered.`);
+      throw new Error(`Insufficient payment. Total is ₱${fmt(total)} but ₱${fmt(tendered)} was tendered.`);
     }
 
     const receipt = generateReceipt(items, tendered, method);
@@ -1023,20 +1023,20 @@ function generateReceipt(items, tendered, method) {
   items.forEach(({product, qty}) => {
     const name  = product.name.length > 22 ? product.name.substr(0,21)+"…" : product.name.padEnd(22);
     const q     = String(qty).padStart(4);
-    const total = ("$"+fmt(product.price * qty)).padStart(9);
+    const total = ("₱"+fmt(product.price * qty)).padStart(9);
     body += `  ${name} ${q}  ${total}\n`;
   });
 
   body += `${THIN}\n`;
-  body += `  ${"Subtotal:".padEnd(30)} ${"$"+fmt(sub)}\n`;
+  body += `  ${"Subtotal:".padEnd(30)} ${"₱"+fmt(sub)}\n`;
   if (discountPercent > 0) {
-    body += `  ${("Discount ("+discountPercent.toFixed(0)+"%):" ).padEnd(30)} -$${fmt(disc)}\n`;
+    body += `  ${("Discount ("+discountPercent.toFixed(0)+"%):" ).padEnd(30)} -₱${fmt(disc)}\n`;
   }
-  body += `  ${"Tax (8.5%):".padEnd(30)} ${"$"+fmt(tax)}\n`;
+  body += `  ${"Tax (8.5%):".padEnd(30)} ${"₱"+fmt(tax)}\n`;
   body += `${LINE}\n`;
-  body += `  ${"GRAND TOTAL:".padEnd(30)} ${"$"+fmt(total)}\n`;
-  body += `  ${"Tendered:".padEnd(30)} ${"$"+fmt(tendered)}\n`;
-  body += `  ${"Change:".padEnd(30)} ${"$"+fmt(change)}\n`;
+  body += `  ${"GRAND TOTAL:".padEnd(30)} ${"₱"+fmt(total)}\n`;
+  body += `  ${"Tendered:".padEnd(30)} ${"₱"+fmt(tendered)}\n`;
+  body += `  ${"Change:".padEnd(30)} ${"₱"+fmt(change)}\n`;
   body += `${LINE}\n`;
   body += `      Thank you for shopping with us!\n`;
   body += `${LINE}\n`;
@@ -1074,7 +1074,7 @@ function renderProducts() {
         <div class="cat-badge">${p.cat}</div>
         <div class="p-name">${p.name}</div>
         <div class="p-bottom">
-          <span class="p-price">$${p.price.toFixed(2)}</span>
+          <span class="p-price">₱${p.price.toFixed(2)}</span>
           <span class="p-stock ${stockCls}">${stockLabel}</span>
         </div>
       </div>`;
@@ -1108,7 +1108,7 @@ function renderCart() {
         <span class="qty-num">${qty}</span>
         <button class="qty-btn" onclick="increaseQty('${product.id}')" title="Add one">+</button>
       </div>
-      <div class="cr-total">$${fmt(product.price * qty)}</div>
+      <div class="cr-total">₱${fmt(product.price * qty)}</div>
     </div>
   `).join("");
 }
@@ -1119,10 +1119,10 @@ function renderTotals() {
   const tax  = taxAmount();
   const tot  = grandTotal();
 
-  document.getElementById("t-subtotal").textContent = `$${fmt(sub)}`;
-  document.getElementById("t-discount").textContent = `-$${fmt(disc)}`;
-  document.getElementById("t-tax").textContent      = `$${fmt(tax)}`;
-  document.getElementById("t-total").textContent    = `$${fmt(tot)}`;
+  document.getElementById("t-subtotal").textContent = `₱${fmt(sub)}`;
+  document.getElementById("t-discount").textContent = `-₱${fmt(disc)}`;
+  document.getElementById("t-tax").textContent      = `₱${fmt(tax)}`;
+  document.getElementById("t-total").textContent    = `₱${fmt(tot)}`;
 }
 
 function renderCategories() {
@@ -1183,12 +1183,12 @@ function updateChangeDue() {
       el.style.display    = "block";
       el.style.background = "var(--teal-light)";
       el.style.color      = "var(--teal-dark)";
-      el.textContent      = `✓  Change due: $${fmt(change)}`;
+      el.textContent      = `✓  Change due: ₱${fmt(change)}`;
     } else {
       el.style.display    = "block";
       el.style.background = "var(--amber-light)";
       el.style.color      = "var(--amber)";
-      el.textContent      = `⚠  Still owed: $${fmt(-change)}`;
+      el.textContent      = `⚠  Still owed: ₱${fmt(-change)}`;
     }
   } catch { el.style.display = "none"; }
 }
@@ -1220,7 +1220,7 @@ function flashCard(productId) {
 function showReceipt(receipt) {
   document.getElementById("receipt-body").textContent = receipt.body;
   document.getElementById("receipt-modal").style.display = "flex";
-  showToast(`Transaction complete! Change: $${fmt(receipt.change)}`);
+  showToast(`Transaction complete! Change: ₱${fmt(receipt.change)}`);
 }
 
 function closeReceipt() {
